@@ -2,6 +2,7 @@ import http.server
 import socketserver
 import os
 import json
+import random
 import configparser
 from jinja2 import Environment, FileSystemLoader
 
@@ -20,7 +21,8 @@ class CustomHTTPRequestHandler(http.server.SimpleHTTPRequestHandler):
             self.end_headers()
 
             files = os.listdir(output_dir)
-            images = sorted([f for f in files if f.endswith('.jpg')])
+            images = [f for f in files if f.endswith('.jpg')]
+            random.shuffle(images)
             data = []
             for image in images:
                 json_file = image.replace('.jpg', '.json')

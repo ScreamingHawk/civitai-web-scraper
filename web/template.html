@@ -8,17 +8,20 @@
 </head>
 
 <body>
+	<input type="text" id="search-box" oninput="debounceSearch()" placeholder="Search...">
 	<div class="container">
 		{% for item in data %}
-		<div class="img-container" id="container-{{ loop.index }}">
+		<div class="img-container" id="container-{{ item.data.id }}">
 			<img class="lazy" data-src="/out/{{ item.image }}" alt="Image" loading="lazy"
-				onclick="toggleShow('data-{{ loop.index }}', 'container-{{ loop.index }}')">
+				onclick="toggleShow('data-{{ item.data.id }}', 'container-{{ item.data.id }}')">
 			<!-- {{ item.data|e }} -->
-			<div class="json-data" id="data-{{ loop.index }}" style="display: none;">
+			<div class="json-data" id="data-{{ item.data.id }}" style="display: none;">
 				<span class="data-label">Prompt:</span>
-				<code class="data-value cursor" id="code-prompt-{{ loop.index }}" onclick="copyToClipboard('code-prompt-{{ loop.index }}')">{{ item.data.meta.prompt|e }}</code>
+				<code class="data-value cursor" id="code-prompt-{{ item.data.id }}"
+					onclick="copyToClipboard('code-prompt-{{ item.data.id }}')">{{ item.data.meta.prompt|e }}</code>
 				<span class="data-label">Negative:</span>
-				<code class="data-value cursor" id="code-negative-{{ loop.index }}" onclick="copyToClipboard('code-negative-{{ loop.index }}')">{{ item.data.meta.negativePrompt|e }}</code>
+				<code class="data-value cursor" id="code-negative-{{ item.data.id }}"
+					onclick="copyToClipboard('code-negative-{{ item.data.id }}')">{{ item.data.meta.negativePrompt|e }}</code>
 				<span class="data-label">NSFW Level:</span>
 				<code class="data-value">{{ item.data.nsfwLevel }}</code>
 				<span class="data-label">Size:</span>
@@ -89,6 +92,31 @@
 			document.execCommand("copy");
 			document.body.removeChild(textarea);
 			alert("Copied to clipboard!");
+		}
+	</script>
+	<script>
+		var data = {{ data | tojson }};
+		var timeoutId;
+
+		function debounceSearch() {
+			if (timeoutId) {
+				clearTimeout(timeoutId);
+			}
+			timeoutId = setTimeout(search, 300);
+		}
+		function search() {
+			var query = document.getElementById('search-box').value.toLowerCase();
+
+			for (var i = 0; i < data.length; i++) {
+				var itemData = data[i].data;
+				var itemString = JSON.stringify(itemData.meta).toLowerCase();
+
+				if (itemString.includes(query)) {
+					document.getElementById('container-' + itemData.id).style.display = null;
+				} else {
+					document.getElementById('container-' + itemData.id).style.display = 'none';
+				}
+			}
 		}
 	</script>
 </body>
