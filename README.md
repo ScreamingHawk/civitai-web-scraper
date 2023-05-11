@@ -31,3 +31,9 @@ Run the script
 ```sh
 py scrape_civitai.py
 ```
+
+Run the server
+
+```sh
+py server.py
+```

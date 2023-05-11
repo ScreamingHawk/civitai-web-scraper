@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+	<title>Ripped Civitai Images</title>
+	<link rel="stylesheet" type="text/css" href="/web/main.css">
+	<script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
+</head>
+
+<body>
+	{% for item in data %}
+	<div class="img-container">
+			<img class="lazy" data-src="/out/{{ item.image }}" alt="Image" loading="lazy">
+			<div class="json-data">
+				<div class="data-row">
+					<span class="data-label">Prompt:</span>
+					<code class="data-value">{{ item.data.meta.prompt|e }}</code>
+				</div>
+				<div class="data-row">
+					<span class="data-label">Negative:</span>
+					<code class="data-value">{{ item.data.meta.negativePrompt|e }}</code>
+				</div>
+				<div class="data-row">
+					<span class="data-label">NSFW Level:</span>
+					<code class="data-value">{{ item.data.nsfwLevel }}</code>
+				</div>
+				<div class="data-row">
+					<span class="data-label">Size:</span>
+					<code class="data-value">{{ item.data.Size }}</code>
+				</div>
+				<div class="data-row">
+					<span class="data-label">Model:</span>
+					<code class="data-value">{{ item.data.Model }}</code>
+				</div>
+				<div class="data-row">
+					<span class="data-label">Sampler:</span>
+					<code class="data-value">{{ item.data.meta.sampler }}</code>
+				</div>
+				<div class="data-row">
+					<span class="data-label">CFG Scale:</span>
+					<code class="data-value">{{ item.data.meta.cfgScale }}</code>
+				</div>
+				<div class="data-row">
+					<span class="data-label">Seed:</span>
+					<code class="data-value">{{ item.data.seed }}</code>
+				</div>
+			</div>
+	</div>
+	{% endfor %}
+	<script>
+		document.addEventListener("DOMContentLoaded", function() {
+				var lazyImages = [].slice.call(document.querySelectorAll("img.lazy"));
+				if ("IntersectionObserver" in window) {
+						let lazyImageObserver = new IntersectionObserver(function(entries, observer) {
+						entries.forEach(function(entry) {
+								if (entry.isIntersecting) {
+										let lazyImage = entry.target;
+										lazyImage.src = lazyImage.dataset.src;
+										lazyImage.classList.remove("lazy");
+										lazyImageObserver.unobserve(lazyImage);
+
+										// Load JSON data when the image comes into view
+										var jsonDataElement = $(lazyImage).next('.json-data');
+										$.getJSON(jsonDataElement.data('json'), function(data) {
+												jsonDataElement.text(JSON.stringify(data, null, 2));
+										});
+								}
+						});
+						});
+
+						lazyImages.forEach(function(lazyImage) {
+						lazyImageObserver.observe(lazyImage);
+						});
+				}
+		});
+	</script>
+</body>
+
+</html>
