@@ -17,7 +17,6 @@ for i in range(pages):
 
     if response.status_code == 200:
         data = response.json()
-        print(data)
         for item in data["items"]:
             item_id = item["id"]
             img_filename = f"{output_dir}/{item_id}.jpg"
@@ -26,6 +25,7 @@ for i in range(pages):
                 # Already downloaded
                 print(f"File {json_filename} already exists.")
             else:
+                print(f"Saving {json_filename}.")
                 with open(json_filename, "w") as f:
                     # Always save metadata
                     json.dump(item, f, indent=1)
