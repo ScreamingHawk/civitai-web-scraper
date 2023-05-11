@@ -12,6 +12,7 @@ body {
 #search-box {
   position: sticky;
   top: 0;
+  z-index: 100;
   width: 100%;
   padding: 1em;
   box-sizing: border-box;
@@ -19,7 +20,7 @@ body {
   border-radius: 8px;
   background-color: #f9f9f9;
   font-size: 1.2em;
-	margin-bottom: 1.5em;
+  margin-bottom: 1.5em;
 }
 
 .container {
@@ -42,6 +43,33 @@ body {
   max-width: 40vw;
 }
 
+.img-wrapper {
+  width: 100%;
+}
+
+.full-width .img-wrapper {
+  margin-right: 2em;
+}
+
+.spinner {
+  border: 16px solid #f3f3f3;
+  border-top: 16px solid #3498db;
+  border-radius: 50%;
+  width: 120px;
+  height: 120px;
+  animation: spin 2s linear infinite;
+  margin: auto;
+}
+
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
 .img-container img {
   max-width: 100%;
   max-height: 50vh;
@@ -49,7 +77,6 @@ body {
   margin: auto;
   cursor: pointer;
 }
-
 .full-width {
   grid-column: span 4; /* Matches grid setup */
   max-width: 100%;
@@ -59,7 +86,6 @@ body {
   max-width: 100%;
   max-height: 80vh;
   object-fit: contain;
-  margin-right: 2em;
 }
 
 .json-data {

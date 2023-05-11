@@ -12,8 +12,12 @@
 	<div class="container">
 		{% for item in data %}
 		<div class="img-container" id="container-{{ item.data.id }}">
-			<img class="lazy" data-src="/out/{{ item.image }}" alt="Image" loading="lazy"
-				onclick="toggleShow('data-{{ item.data.id }}', 'container-{{ item.data.id }}')">
+			<div class="img-wrapper">
+				<div class="spinner"></div>
+				<img class="lazy" data-src="/out/{{ item.image }}" alt="" loading="lazy"
+					onclick="toggleShow('data-{{ item.data.id }}', 'container-{{ item.data.id }}')"
+					onload="this.previousElementSibling.style.display='none'">
+			</div>
 			<!-- {{ item.data|e }} -->
 			<div class="json-data" id="data-{{ item.data.id }}" style="display: none;">
 				<span class="data-label">Prompt:</span>
@@ -79,7 +83,9 @@
 				x.style.display = "none";
 				container.classList.remove('full-width');
 			}
-			container.scrollIntoView({ behavior: "smooth" });
+			var yOffset = -80;
+			var y = container.getBoundingClientRect().top + window.pageYOffset + yOffset;
+			window.scrollTo({ top: y, behavior: 'smooth' });
 		}
 	</script>
 	<script>
