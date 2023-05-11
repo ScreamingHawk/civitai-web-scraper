@@ -9,9 +9,10 @@ config.read("config.ini")
 output_dir = config["DEFAULT"]["OutputDir"]
 nsfw_level = config["DEFAULT"]["NSFWLevel"]
 pages = int(config["DEFAULT"]["Pages"])
+page_start = int(config["DEFAULT"]["PageStart"])
 
-for i in range(pages):
-    url = f"https://civitai.com/api/v1/images?limit=100&sort=Most Reactions&nsfw={nsfw_level}&page={i + 1}"
+for i in range(page_start, pages + 1):
+    url = f"https://civitai.com/api/v1/images?limit=100&sort=Most Reactions&nsfw={nsfw_level}&page={i}"
     print(url)
     response = requests.get(url)
 
