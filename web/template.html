@@ -14,7 +14,7 @@
 		<div class="img-container" id="container-{{ item.data.id }}">
 			<div class="img-wrapper">
 				<div class="spinner"></div>
-				<img class="lazy" data-src="/out/{{ item.image }}" alt="" loading="lazy"
+				<img class="lazy" data-src="{{ item.image }}" alt="" loading="lazy"
 					onclick="toggleShow('data-{{ item.data.id }}', 'container-{{ item.data.id }}')"
 					onload="this.previousElementSibling.style.display='none'">
 			</div>

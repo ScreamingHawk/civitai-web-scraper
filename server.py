@@ -11,6 +11,7 @@ config = configparser.ConfigParser()
 config.read("config.ini")
 output_dir = config["DEFAULT"]["OutputDir"]
 PORT = int(config["DEFAULT"]["ServerPort"])
+local_images = config["DEFAULT"]["LocalImages"] == 'True'
 
 # Create a custom handler for HTTP requests
 class CustomHTTPRequestHandler(http.server.SimpleHTTPRequestHandler):
@@ -21,15 +22,25 @@ class CustomHTTPRequestHandler(http.server.SimpleHTTPRequestHandler):
             self.end_headers()
 
             files = os.listdir(output_dir)
-            images = [f for f in files if f.endswith('.jpg')]
-            random.shuffle(images)
+            jsons = [f for f in files if f.endswith('.json')]
+            random.shuffle(jsons)
             data = []
-            for image in images:
-                json_file = image.replace('.jpg', '.json')
-                if json_file in files:
-                    with open(f'out/{json_file}', 'r') as f:
-                        json_data = json.load(f)
-                    data.append({'image': image, 'data': json_data})
+            for json_file in jsons:
+                image = None
+                with open(f'out/{json_file}', 'r') as f:
+                    json_data = json.load(f)
+                if local_images:
+                    # Find image in file system
+                    image = json_file.replace('.json', '.jpg')
+                    if image not in files:
+                        # Skip it
+                        continue
+                    image = f'/{output_dir}/{image}'
+                elif not json_data["url"] or not json_data['meta']:
+                    continue
+                else:
+                    image = json_data["url"]
+                data.append({'image': image, 'data': json_data})
 
             env = Environment(loader=FileSystemLoader('.'))
             template = env.get_template('web/template.html')

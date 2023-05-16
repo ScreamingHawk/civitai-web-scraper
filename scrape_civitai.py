@@ -10,6 +10,7 @@ output_dir = config["DEFAULT"]["OutputDir"]
 nsfw_level = config["DEFAULT"]["NSFWLevel"]
 pages = int(config["DEFAULT"]["Pages"])
 page_start = int(config["DEFAULT"]["PageStart"])
+local_images = config["DEFAULT"]["LocalImages"] == 'True'
 
 for i in range(page_start, pages + 1):
     url = f"https://civitai.com/api/v1/images?limit=100&sort=Most Reactions&nsfw={nsfw_level}&page={i}"
@@ -30,7 +31,7 @@ for i in range(page_start, pages + 1):
                 with open(json_filename, "w") as f:
                     # Always save metadata
                     json.dump(item, f, indent=1)
-                if item["meta"]:
+                if item["meta"] and item["url"] and local_images:
                     # Only save images that have metadata
                     image_response = requests.get(item["url"])
                     if image_response.status_code == 200:
