@@ -18,7 +18,6 @@
 					onclick="toggleShow('data-{{ item.data.id }}', 'container-{{ item.data.id }}')"
 					onload="this.previousElementSibling.style.display='none'">
 			</div>
-			<!-- {{ item.data|e }} -->
 			<div class="json-data" id="data-{{ item.data.id }}" style="display: none;">
 				<span class="data-label">Prompt:</span>
 				<code class="data-value cursor" id="code-prompt-{{ item.data.id }}"
@@ -34,6 +33,8 @@
 				<code class="data-value">{{ item.data.meta.Model }}</code>
 				<span class="data-label">Sampler:</span>
 				<code class="data-value">{{ item.data.meta.sampler }}</code>
+				<span class="data-label">Steps:</span>
+				<code class="data-value">{{ item.data.meta.steps }}</code>
 				<span class="data-label">CFG Scale:</span>
 				<code class="data-value">{{ item.data.meta.cfgScale }}</code>
 				<span class="data-label">Seed:</span>
@@ -46,6 +47,10 @@
 		{% endfor %}
 	</div>
 	<script>
+		window.onbeforeunload = function () {
+			// Scroll to top
+			window.scrollTo(0, 0);
+		}
 		document.addEventListener("DOMContentLoaded", function () {
 			var lazyImages = [].slice.call(document.querySelectorAll("img.lazy"));
 			if ("IntersectionObserver" in window) {
