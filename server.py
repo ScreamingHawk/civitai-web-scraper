@@ -13,34 +13,42 @@ output_dir = config["DEFAULT"]["OutputDir"]
 PORT = int(config["DEFAULT"]["ServerPort"])
 local_images = config["DEFAULT"]["LocalImages"] == 'True'
 
+data = []
+
+def load_image_data():
+    print("Loading image data...")
+    global data
+    files = os.listdir(output_dir)
+    jsons = [f for f in files if f.endswith('.json')]
+    random.shuffle(jsons)
+    data = []
+    for json_file in jsons:
+        image = None
+        with open(f'out/{json_file}', 'r') as f:
+            json_data = json.load(f)
+        if local_images:
+            # Find image in file system
+            image = json_file.replace('.json', '.jpg')
+            if image not in files:
+                # Skip it
+                continue
+            image = f'/{output_dir}/{image}'
+        elif not json_data["url"] or not json_data['meta']:
+            continue
+        else:
+            image = json_data["url"]
+        data.append({'image': image, 'data': json_data})
+    print(f"{len(data)} image data loaded!")
+
 # Create a custom handler for HTTP requests
 class CustomHTTPRequestHandler(http.server.SimpleHTTPRequestHandler):
     def do_GET(self):
         if self.path == '/':
+            global data
+
             self.send_response(200)
             self.send_header('Content-type', 'text/html')
             self.end_headers()
-
-            files = os.listdir(output_dir)
-            jsons = [f for f in files if f.endswith('.json')]
-            random.shuffle(jsons)
-            data = []
-            for json_file in jsons:
-                image = None
-                with open(f'out/{json_file}', 'r') as f:
-                    json_data = json.load(f)
-                if local_images:
-                    # Find image in file system
-                    image = json_file.replace('.json', '.jpg')
-                    if image not in files:
-                        # Skip it
-                        continue
-                    image = f'/{output_dir}/{image}'
-                elif not json_data["url"] or not json_data['meta']:
-                    continue
-                else:
-                    image = json_data["url"]
-                data.append({'image': image, 'data': json_data})
 
             env = Environment(loader=FileSystemLoader('.'))
             template = env.get_template('web/template.html')
@@ -57,6 +65,8 @@ class CustomHTTPRequestHandler(http.server.SimpleHTTPRequestHandler):
                 self.wfile.write(f.read())
         else:
             super().do_GET()
+
+load_image_data()
 
 # Start the server
 with socketserver.TCPServer(("", PORT), CustomHTTPRequestHandler) as httpd:
