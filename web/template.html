@@ -9,76 +9,97 @@
 
 <body>
 	<input type="text" id="search-box" oninput="debounceSearch()" placeholder="Search...">
-	<div class="container">
-		{% for item in data %}
-		<div class="img-container" id="container-{{ item.data.id }}">
-			<div class="img-wrapper">
-				<div class="spinner"></div>
-				<img class="lazy" data-src="{{ item.image }}" alt="" loading="lazy"
-					onclick="toggleShow('data-{{ item.data.id }}', 'container-{{ item.data.id }}')"
-					onload="this.previousElementSibling.style.display='none'">
-			</div>
-			<div class="json-data" id="data-{{ item.data.id }}" style="display: none;">
-				<span class="data-label">Prompt:</span>
-				<code class="data-value cursor" id="code-prompt-{{ item.data.id }}"
-					onclick="copyToClipboard('code-prompt-{{ item.data.id }}')">{{ item.data.meta.prompt|e }}</code>
-				<span class="data-label">Negative:</span>
-				<code class="data-value cursor" id="code-negative-{{ item.data.id }}"
-					onclick="copyToClipboard('code-negative-{{ item.data.id }}')">{{ item.data.meta.negativePrompt|e }}</code>
-				<span class="data-label">NSFW Level:</span>
-				<code class="data-value">{{ item.data.nsfwLevel }}</code>
-				<span class="data-label">Size:</span>
-				<code class="data-value">{{ item.data.meta.Size }}</code>
-				<span class="data-label">Model:</span>
-				<code class="data-value">{{ item.data.meta.Model }}</code>
-				<span class="data-label">Sampler:</span>
-				<code class="data-value">{{ item.data.meta.sampler }}</code>
-				<span class="data-label">Steps:</span>
-				<code class="data-value">{{ item.data.meta.steps }}</code>
-				<span class="data-label">CFG Scale:</span>
-				<code class="data-value">{{ item.data.meta.cfgScale }}</code>
-				<span class="data-label">Seed:</span>
-				<code class="data-value">{{ item.data.meta.seed }}</code>
-				<span class="data-label">Link:</span>
-				<a class="data-value" href="https://civitai.com/images/{{ item.data.id }}">https://civitai.com/images/{{
-					item.data.id }}</a>
-			</div>
-		</div>
-		{% endfor %}
+	<div id="image-container" class="container">
+		<!-- Data loads here -->
 	</div>
+	<div id="image-loader"></div>
 	<script>
 		window.onbeforeunload = function () {
 			// Scroll to top
 			window.scrollTo(0, 0);
 		}
-		document.addEventListener("DOMContentLoaded", function () {
-			var lazyImages = [].slice.call(document.querySelectorAll("img.lazy"));
-			if ("IntersectionObserver" in window) {
-				let lazyImageObserver = new IntersectionObserver(function (entries, observer) {
-					entries.forEach(function (entry) {
-						if (entry.isIntersecting) {
-							let lazyImage = entry.target;
-							lazyImage.src = lazyImage.dataset.src;
-							lazyImage.classList.remove("lazy");
-							lazyImageObserver.unobserve(lazyImage);
+	</script>
+	<script>
+		var page = 1;
+		var seenIds = new Set();
 
-							// Load JSON data when the image comes into view
-							var jsonDataElement = $(lazyImage).next('.json-data');
-							$.getJSON(jsonDataElement.data('json'), function (data) {
-								jsonDataElement.text(JSON.stringify(data, null, 2));
-							});
-						}
-					});
-				}, {
-					rootMargin: "500px 0px 500px 0px",
-					threshold: 0.1,
-				});
+		function loadMoreData() {
+			var query = document.getElementById('search-box').value;
+			var url = '/page/' + page + (query ? '?search=' + encodeURIComponent(query) : '');
 
-				lazyImages.forEach(function (lazyImage) {
-					lazyImageObserver.observe(lazyImage);
+			fetch(url)
+				.then(response => response.json())
+				.then(data => {
+					for (var i = 0; i < data.length; i++) {
+						var item = data[i];
+						seenIds.add(item.data.id);
+						// Construct the HTML for an image card here.
+						var cardHTML = `
+						<div class="img-container" id="container-${item.data.id}">
+							<div class="img-wrapper">
+								<img src="${item.image}" alt="Loading..."
+									onclick="toggleShow('data-${item.data.id}', 'container-${item.data.id}')">
+							</div>
+							<div class="json-data" id="data-${item.data.id}" style="display: none;">
+								<span class="data-label">Prompt:</span>
+								<code class="data-value cursor" id="code-prompt-${item.data.id}"
+									onclick="copyToClipboard('code-prompt-${item.data.id}')">${item.data.meta.prompt}</code>
+								<span class="data-label">Negative:</span>
+								<code class="data-value cursor" id="code-negative-${item.data.id}"
+									onclick="copyToClipboard('code-negative-${item.data.id}')">${item.data.meta.negativePrompt}</code>
+								<span class="data-label">NSFW Level:</span>
+								<code class="data-value">${item.data.nsfwLevel}</code>
+								<span class="data-label">Size:</span>
+								<code class="data-value">${item.data.meta.Size}</code>
+								<span class="data-label">Model:</span>
+								<code class="data-value">${item.data.meta.Model}</code>
+								<span class="data-label">Sampler:</span>
+								<code class="data-value">${item.data.meta.sampler}</code>
+								<span class="data-label">Steps:</span>
+								<code class="data-value">${item.data.meta.steps}</code>
+								<span class="data-label">CFG Scale:</span>
+								<code class="data-value">${item.data.meta.cfgScale}</code>
+								<span class="data-label">Seed:</span>
+								<code class="data-value">${item.data.meta.seed}</code>
+								<span class="data-label">Link:</span>
+								<a class="data-value" href="https://civitai.com/images/${item.data.id}">https://civitai.com/images/${item.data.id}</a>
+							</div>
+						</div>`;
+						document.getElementById('image-container').innerHTML += cardHTML;
+					}
+					//FIXME Some kind of break condition when there's no more pages
+					page++;
 				});
+		}
+
+		var searchTimeoutId;
+		function debounceSearch() {
+			if (searchTimeoutId) {
+				clearTimeout(searchTimeoutId);
 			}
+			searchTimeoutId = setTimeout(() => {
+				document.getElementById('image-container').innerHTML = '';
+				seenIds.clear();
+				page = 1;
+				loadMoreData();
+			}, 300);
+		}
+
+		// Load the first page of data when the page is loaded
+		document.addEventListener("DOMContentLoaded", loadMoreData);
+
+		// Setup the Intersection Observer
+		const observer = new IntersectionObserver((entries) => {
+			// If the loader comes into view, load more data
+			if (entries[0].isIntersecting && page > 1) {
+				loadMoreData();
+			}
+		}, {
+			rootMargin: '1000px',
 		});
+
+		// Observe the loader
+		observer.observe(document.getElementById('image-loader'));
 	</script>
 	<script>
 		function toggleShow(dataId, containerId) {
@@ -106,32 +127,6 @@
 			document.execCommand("copy");
 			document.body.removeChild(textarea);
 			alert("Copied to clipboard!");
-		}
-	</script>
-	<script>
-		var data = {{ data | tojson }};
-		var timeoutId;
-
-		function debounceSearch() {
-			if (timeoutId) {
-				clearTimeout(timeoutId);
-			}
-			timeoutId = setTimeout(search, 300);
-		}
-		function search() {
-			window.scrollTo(0, 0);
-			var query = document.getElementById('search-box').value.toLowerCase();
-
-			for (var i = 0; i < data.length; i++) {
-				var itemData = data[i].data;
-				var itemString = JSON.stringify(itemData.meta).toLowerCase();
-
-				if (itemString.includes(query)) {
-					document.getElementById('container-' + itemData.id).style.display = null;
-				} else {
-					document.getElementById('container-' + itemData.id).style.display = 'none';
-				}
-			}
 		}
 	</script>
 </body>
