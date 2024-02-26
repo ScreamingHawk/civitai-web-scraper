@@ -12,7 +12,7 @@ pages = int(config["DEFAULT"]["Pages"])
 page_start = int(config["DEFAULT"]["PageStart"])
 local_images = config["DEFAULT"]["LocalImages"] == 'True'
 
-for i in range(page_start, pages + 1):
+for i in range(page_start, pages + page_start):
     url = f"https://civitai.com/api/v1/images?limit=100&sort=Most Reactions&nsfw={nsfw_level}&page={i}"
     print(url)
     response = requests.get(url)
